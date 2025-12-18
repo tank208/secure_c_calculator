@@ -1,0 +1,6 @@
+# environment variables:
+AFL_CUSTOM_INFO_PROGRAM=./calculator
+AFL_CUSTOM_INFO_PROGRAM_ARGV=
+AFL_CUSTOM_INFO_OUT=aflout/default
+# command line:
+'afl-fuzz' '-i' 'aflin' '-o' 'aflout' '-x' 'dict.txt' '-D' '--' './calculator'
