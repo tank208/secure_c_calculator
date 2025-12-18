@@ -1,197 +1,196 @@
-Purpose
+Below is a **tight, professional security notes file** and a **clean folder skeleton** that fits how a serious security practitioner presents finished work.
 
-This document records the security assumptions, threat considerations, and verification boundaries for the Secure C Calculator.
+No fluff. Clear intent. Reviewer-friendly.
+
+---
+
+# `SECURITY_NOTES.md`
+
+## Purpose
+
+This document records the **security assumptions, threat considerations, and verification boundaries** for the Secure C Calculator.
 It exists to make design intent explicit and to clarify what was — and was not — defended against.
 
-This project prioritizes correctness and robustness over extensibility.
+This project prioritizes **correctness and robustness** over extensibility.
 
-Threat Model
-In Scope
+---
 
-Malformed user input
+## Threat Model
 
-Adversarial input designed to:
+### In Scope
 
-Crash the program
+* Malformed user input
+* Adversarial input designed to:
 
-Trigger undefined behavior
+  * Crash the program
+  * Trigger undefined behavior
+  * Exploit buffer boundaries
+  * Induce integer overflow/underflow
+  * Cause division-by-zero faults
+* Grammar confusion attacks (ambiguous operand/operator parsing)
+* Excessive repetition or truncation operations
 
-Exploit buffer boundaries
+### Out of Scope
 
-Induce integer overflow/underflow
+* Malicious runtime environment (e.g., tampered libc)
+* Side-channel attacks
+* Floating-point precision abuse
+* Unicode or locale-based attacks
+* Performance denial-of-service beyond enforced bounds
 
-Cause division-by-zero faults
+---
 
-Grammar confusion attacks (ambiguous operand/operator parsing)
+## Input Validation Strategy
 
-Excessive repetition or truncation operations
+### Character-Level Filtering
 
-Out of Scope
+* Accepts only:
 
-Malicious runtime environment (e.g., tampered libc)
+  * `[a-zA-Z0-9+-*/%]`
+* Immediate rejection of:
 
-Side-channel attacks
+  * Whitespace
+  * Control characters
+  * Extended ASCII / Unicode
 
-Floating-point precision abuse
-
-Unicode or locale-based attacks
-
-Performance denial-of-service beyond enforced bounds
-
-Input Validation Strategy
-Character-Level Filtering
-
-Accepts only:
-
-[a-zA-Z0-9+-*/%]
-
-Immediate rejection of:
-
-Whitespace
-
-Control characters
-
-Extended ASCII / Unicode
-
-Rationale:
+**Rationale:**
 Eliminates ambiguity early and reduces parser complexity.
 
-Grammar Enforcement
+---
 
-Exactly one operator per expression
+### Grammar Enforcement
 
-Operator must appear between two operands
+* Exactly one operator per expression
+* Operator must appear **between** two operands
+* Operand types:
 
-Operand types:
+  * Integer + Integer
+  * Integer + String
+  * String + Integer
+* String + String is explicitly rejected
 
-Integer + Integer
-
-Integer + String
-
-String + Integer
-
-String + String is explicitly rejected
-
-Rationale:
+**Rationale:**
 Prevents ambiguous execution paths and unexpected coercion.
 
-Integer Safety
-Validation
+---
 
-Integer operands must satisfy:
+## Integer Safety
 
-0 ≤ value ≤ INT_MAX
+### Validation
 
-Explicit rejection of:
+* Integer operands must satisfy:
 
-Negative integers
+  * `0 ≤ value ≤ INT_MAX`
+* Explicit rejection of:
 
-Overflow during parsing
+  * Negative integers
+  * Overflow during parsing
 
-Arithmetic Safety
+### Arithmetic Safety
 
-All integer arithmetic includes:
+* All integer arithmetic includes:
 
-Overflow / underflow checks
+  * Overflow / underflow checks
+  * Divide-by-zero checks
+  * Safe handling of remainder operator
 
-Divide-by-zero checks
-
-Safe handling of remainder operator
-
-Rationale:
+**Rationale:**
 Prevents undefined behavior, silent wraparound, and fatal runtime exceptions.
 
-String Safety
-Length Constraints
+---
 
-Input strings:
+## String Safety
 
-Maximum length: 100 characters
+### Length Constraints
 
-Output strings:
+* Input strings:
 
-Hard limit: 1024 characters
+  * Maximum length: **100 characters**
+* Output strings:
 
-Operations
+  * Hard limit: **1024 characters**
 
-Shift operations preserve:
+### Operations
 
-Case
+* Shift operations preserve:
 
-Alphabet boundaries (wrap-around logic)
+  * Case
+  * Alphabet boundaries (wrap-around logic)
+* Expansion operations:
 
-Expansion operations:
+  * Truncate safely when exceeding output limit
+  * Emit explicit warning
 
-Truncate safely when exceeding output limit
-
-Emit explicit warning
-
-Rationale:
+**Rationale:**
 Ensures bounded memory usage and predictable output behavior.
 
-Operator Restrictions
-Context	Allowed Operators
-Integer ↔ Integer	+ - * / %
-String ↔ Integer	+ - * /
-String ↔ String	Rejected
-% with strings	Rejected
+---
 
-Rationale:
+## Operator Restrictions
+
+| Context           | Allowed Operators |
+| ----------------- | ----------------- |
+| Integer ↔ Integer | `+ - * / %`       |
+| String ↔ Integer  | `+ - * /`         |
+| String ↔ String   | **Rejected**      |
+| `%` with strings  | **Rejected**      |
+
+**Rationale:**
 Eliminates semantic ambiguity and prevents misuse of operators outside defined behavior.
 
-Error Handling
+---
 
-All invalid inputs are:
+## Error Handling
 
-Explicitly rejected
+* All invalid inputs are:
 
-Reported to the user
+  * Explicitly rejected
+  * Reported to the user
+  * Non-fatal to program execution
+* Program remains in a controlled loop until `exit` is entered
 
-Non-fatal to program execution
-
-Program remains in a controlled loop until exit is entered
-
-Rationale:
+**Rationale:**
 Fail safely, fail clearly, and continue operation.
 
-Fuzzing & Verification
-Tooling
+---
 
-AFL (American Fuzzy Lop)
+## Fuzzing & Verification
 
-Coverage Focus
+### Tooling
 
-Parser correctness
+* **AFL (American Fuzzy Lop)**
 
-Boundary conditions
+### Coverage Focus
 
-Integer edge cases
+* Parser correctness
+* Boundary conditions
+* Integer edge cases
+* String expansion/truncation behavior
+* Operator misuse
 
-String expansion/truncation behavior
+### Results
 
-Operator misuse
+* No crashes observed
+* No hangs detected
+* No memory safety violations
+* No undefined behavior triggered during extended fuzzing runs
 
-Results
+---
 
-No crashes observed
+## Residual Risk
 
-No hangs detected
+* Logic errors outside defined grammar (by design rejected)
+* Undefined behavior if compiler optimizations violate C standard assumptions (low risk)
+* Security posture depends on strict compilation flags being preserved
 
-No memory safety violations
+---
 
-No undefined behavior triggered during extended fuzzing runs
-
-Residual Risk
-
-Logic errors outside defined grammar (by design rejected)
-
-Undefined behavior if compiler optimizations violate C standard assumptions (low risk)
-
-Security posture depends on strict compilation flags being preserved
-
-Compilation Recommendations
+## Compilation Recommendations
 
 Recommended flags for verification:
 
+```
 -Wall -Wextra -Werror -pedantic -fsanitize=address,undefined
+```
 
+---
