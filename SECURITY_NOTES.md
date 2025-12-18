@@ -1,9 +1,3 @@
-Below is a **tight, professional security notes file** and a **clean folder skeleton** that fits how a serious security practitioner presents finished work.
-
-No fluff. Clear intent. Reviewer-friendly.
-
----
-
 # `SECURITY_NOTES.md`
 
 ## Purpose
