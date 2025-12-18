@@ -119,37 +119,3 @@ This fuzzing run provides strong evidence that the calculator:
 * Implements **defensive parsing correctly**
 * Maintains **memory and control-flow safety**
 * Behaves deterministically under stress
-
-Given the extended runtime and depth of exploration, the absence of crashes or hangs is a **meaningful security signal**, not an accident.
-
----
-
-# Files I’d Like You to Add (If Available)
-
-To make this fuzzing report **bulletproof**, please add any of the following you have:
-
-### 1. Dictionary
-
-```
-fuzzing/dictionaries/calculator.dict
-```
-
-### 2. Seed Inputs
-
-```
-fuzzing/seeds/basic_inputs.txt
-```
-
-(or whatever you used as `-i`)
-
-### 3. Compilation Flags (one of the following)
-
-* `Makefile`
-* `build_flags.txt`
-* Or just paste the compile command you used
-
-### 4. Optional (Nice to Have)
-
-* Screenshot filename confirmation
-* Notes on how long coverage plateaued
-* Whether sanitizers were enabled or disabled
